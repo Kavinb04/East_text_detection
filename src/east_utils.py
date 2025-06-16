@@ -141,8 +141,8 @@ def apply_nms(boxes, confidences, nms_thresh):
     
     # Perform Non-Maximum Suppression
     indices = cv2.dnn.NMSBoxes(boxes_for_nms, confidences,
-                               scoreThreshold=0.0, 
-                               nmsThreshold=nms_thresh)
+                               score_threshold=0.0, 
+                               nms_threshold=nms_thresh)
 
     if len(indices) > 0:
         indices = indices.flatten()

@@ -26,7 +26,7 @@ try:
     net = cv2.dnn.readNet(MODEL_PATH)
     # Define the output layers for the EAST model
     # First elem is the scores map and second is the geometry map.
-    output_layers = ["feature_fusion/Conv_7/Sigmoid", "feature_fusion/concat_words"]
+    output_layers = ["feature_fusion/Conv_7/Sigmoid", "feature_fusion/concat_3"]
     print(f"EAST model loaded from: {MODEL_PATH}")
 except Exception as e:
     print(f"Error loading EAST model from {MODEL_PATH}: {e}")
