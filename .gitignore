@@ -1,0 +1,33 @@
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Operating System generated files
+.DS_Store # macOS
+Thumbs.db # Windows
+ehthumbs.db # Windows
+desktop.ini # Windows
+
+# IDE specific files
+.vscode/ # VS Code settings, if you don't want to share them
+.idea/   # PyCharm project files
+
+# Your Google Cloud Service Account Key (CRITICAL: DO NOT COMMIT THIS!)
+# Replace 'your-service-account-key.json' with the actual name of your key file
+# if you put it directly in the project root.
+# If you put it in 'assets/', it would be assets/your-service-account-key.json
+
+assets/my_google_cloud_key.json 
+
+
+# Logs and temporary data
+logs/
+*.log
+*.tmp
+*.temp
