@@ -19,7 +19,7 @@ MODEL_PATH = os.path.join(parent_dir, 'east_pretrained', 'frozen_east_text_detec
 # EAST model parameters
 CONF_THRESHOLD = 0.5
 NMS_THRESHOLD = 0.4
-INPUT_SIZE = (320, 320) 
+INPUT_SIZE = (640, 640)
 
 # Initialize EAST Text Detector 
 try:
@@ -59,14 +59,19 @@ def run_camera_detection():
         # Decode the EAST predictions
         rects, confidences = decode_east_predictions(scores, geometry, CONF_THRESHOLD)
 
+        # Adjust bounding boxes
+        # adjusted_rects = adjust_boxes(rects, rW, rH)
+
         # Apply Non-Maximum Suppression
         indices = apply_nms(rects, confidences, NMS_THRESHOLD)
+        # indices = apply_nms(adjusted_rects, confidences, NMS_THRESHOLD)
 
         # Draw bounding boxes and recognize text
         if len(indices) > 0:
             for i in indices:
                 # Get the box in (x, y, w, h) format
                 x, y, w, h = rects[i]
+                # x, y, w, h = adjusted_rects[i]
 
                 # Scale the bounding box coordinates back to the original frame size
                 x = int(x * rW)
@@ -92,7 +97,11 @@ def run_camera_detection():
 
                     # Use Tesseract to recognize text
                     # Use PSM 7 for single text line, or 6 for a single block of text
-                    text = pytesseract.image_to_string(gray_roi, config='--psm 7').strip()
+                    # text = pytesseract.image_to_string(gray_roi, config='--psm 7').strip()
+
+                    _, thresh_roi = cv2.threshold(gray_roi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                    # Use thresh_roi instead of gray_roi for Tesseract
+                    text = pytesseract.image_to_string(thresh_roi, config='--psm 7').strip()
 
                     if text:
                         print(f"Detected Text: {text} (Confidence: {confidences[i]:.2f})")
