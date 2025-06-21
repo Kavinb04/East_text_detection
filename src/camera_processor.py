@@ -1,17 +1,17 @@
-
 import cv2
 import pytesseract
 import numpy as np
 import os
 import sys
-
+import time
+# from src.tts_utils import speak_text
 
 script_dir = os.path.dirname(__file__)
 parent_dir = os.path.join(script_dir, os.pardir)
 sys.path.append(parent_dir) # Add EAST_text_detection/ to path
 sys.path.append(os.path.join(parent_dir, 'east_pretrained')) # Add east_pretrained/ to path
 
-from src.east_utils import decode_east_predictions, east_preprocessing, adjust_boxes, apply_nms
+from src.east_utils import decode_east_predictions, east_preprocessing, apply_nms
 
 # Path to the EAST model 
 MODEL_PATH = os.path.join(parent_dir, 'east_pretrained', 'frozen_east_text_detection.pb')
@@ -20,6 +20,7 @@ MODEL_PATH = os.path.join(parent_dir, 'east_pretrained', 'frozen_east_text_detec
 CONF_THRESHOLD = 0.5
 NMS_THRESHOLD = 0.4
 INPUT_SIZE = (640, 640)
+DEBOUNCE_TIME = 2
 
 # Initialize EAST Text Detector 
 try:
@@ -41,7 +42,10 @@ def run_camera_detection():
         print("Error: Could not open video stream. Check camera connection or index.")
         sys.exit(1)
 
-    print("Press 'q' to quit the camera feed.")
+    print("Press SPACE to read detected text aloud. Press 'q' to quit the camera feed.")
+
+    last_spoken_text = ""
+    last_spoken_time = 0
 
     while True:
         ret, frame = cap.read()
@@ -59,19 +63,16 @@ def run_camera_detection():
         # Decode the EAST predictions
         rects, confidences = decode_east_predictions(scores, geometry, CONF_THRESHOLD)
 
-        # Adjust bounding boxes
-        # adjusted_rects = adjust_boxes(rects, rW, rH)
-
         # Apply Non-Maximum Suppression
         indices = apply_nms(rects, confidences, NMS_THRESHOLD)
-        # indices = apply_nms(adjusted_rects, confidences, NMS_THRESHOLD)
+
+        detected_texts = []
 
         # Draw bounding boxes and recognize text
         if len(indices) > 0:
             for i in indices:
                 # Get the box in (x, y, w, h) format
                 x, y, w, h = rects[i]
-                # x, y, w, h = adjusted_rects[i]
 
                 # Scale the bounding box coordinates back to the original frame size
                 x = int(x * rW)
@@ -90,32 +91,35 @@ def run_camera_detection():
 
                 # Extract the Region of Interest for Tesseract
                 cropped_roi = frame[y:y+h, x:x+w]
-
                 if cropped_roi.size > 0:
                     # Convert to grayscale for better OCR performance
                     gray_roi = cv2.cvtColor(cropped_roi, cv2.COLOR_BGR2GRAY)
-
-                    # Use Tesseract to recognize text
-                    # Use PSM 7 for single text line, or 6 for a single block of text
-                    # text = pytesseract.image_to_string(gray_roi, config='--psm 7').strip()
-
                     _, thresh_roi = cv2.threshold(gray_roi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
                     # Use thresh_roi instead of gray_roi for Tesseract
                     text = pytesseract.image_to_string(thresh_roi, config='--psm 7').strip()
-
                     if text:
-                        print(f"Detected Text: {text} (Confidence: {confidences[i]:.2f})")
-                        # Put the recognized text above the bounding box
+                        detected_texts.append(text)
                         cv2.putText(frame, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+
+        # Combine all detected texts for TTS
+        combined_text = " ".join(detected_texts)
 
         # Display the frame
         cv2.imshow("Live Text Detection", frame)
 
-        # Exit on 'q' key press
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        key = cv2.waitKey(1) & 0xFF
+        now = time.time()
+
+        # SPACE triggers TTS with debounce
+        if key == ord(' '):
+            if combined_text and (combined_text != last_spoken_text or now - last_spoken_time > DEBOUNCE_TIME):
+                # speak_text(combined_text)
+                last_spoken_text = combined_text
+                last_spoken_time = now
+
+        if key == ord('q'):
             break
 
-    # --- Cleanup ---
     cap.release()
     cv2.destroyAllWindows()
     print("Camera feed stopped.")

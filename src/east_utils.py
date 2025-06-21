@@ -95,35 +95,6 @@ def east_preprocessing(image, input_size):
                                  (123.68, 116.78, 103.94), swapRB=True, crop=False)
     return blob, rW, rH
 
-def adjust_boxes(boxes, rW, rH):
-    """
-    Adjusts bounding box coordinates back to the original image scale.
-
-    Args:
-        boxes (list): List of bounding boxes (startX, startY, endX, endY)
-                      from the decoded EAST output.
-        rW (float): Width ratio of original image to input_size.
-        rH (float): Height ratio of original image to input_size.
-
-    Returns:
-        list: Adjusted bounding boxes (x, y, w, h) for the original image.
-    """
-    adjusted_boxes = []
-    for (startX, startY, endX, endY) in boxes:
-        # Scale the bounding box coordinates based on given ratios
-        startX = int(startX * rW)
-        startY = int(startY * rH)
-        endX = int(endX * rW)
-        endY = int(endY * rH)
-
-        # Convert (startX, startY, endX, endY) to (x, y, w, h)
-        x = startX
-        y = startY
-        w = endX - startX
-        h = endY - startY
-        adjusted_boxes.append((x, y, w, h))
-    return adjusted_boxes
-
 def apply_nms(boxes, confidences, nms_thresh):
     """
     Applies Non-Maximum Suppression to filter overlapping bounding boxes

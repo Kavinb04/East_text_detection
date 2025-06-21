@@ -19,11 +19,11 @@ sys.path.append(os.path.join(project_root, 'east_pretrained'))
 # Now, import your camera_text_detector.py script.
 # We import it as 'camera_detector' to avoid naming conflicts and make calls clear.
 try:
-    import camera_text_detector as camera_detector
-    print("Successfully imported camera_text_detector.")
+    import camera_processor
+    print("Successfully imported camera_processor.")
 except ImportError as e:
-    print(f"Error importing camera_text_detector: {e}")
-    print("Please ensure 'camera_text_detector.py' and 'east_utils.py' are in the 'src/' directory.")
+    print(f"Error importing camera_processor: {e}")
+    print("Please ensure 'camera_processor.py' and 'east_utils.py' are in the 'src/' directory.")
     print("Also ensure your Python path setup in main.py is correct.")
     sys.exit(1)
 
@@ -34,7 +34,7 @@ def run_live_detection():
     This calls the main execution logic defined in camera_text_detector.py.
     """
     print("\n--- Starting Live Camera Text Detection ---")
-    camera_detector.run_camera_detection() # This calls the function in your camera_text_detector.py
+    camera_processor.run_camera_detection() # This calls the function in your camera_text_detector.py
     print("--- Live Camera Text Detection Finished ---")
 
 
